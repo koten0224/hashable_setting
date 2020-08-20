@@ -1,3 +1,3 @@
 class User < ApplicationRecord
-  include HashableSetting
+  include HashableSetting::OtherModel
 end
