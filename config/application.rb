@@ -10,6 +10,16 @@ module FakeMongo
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.0
+    config.autoload_paths += %W(#{config.root}/lib)
+    Dir[
+      File.join('lib/core_classes', "*.rb"),
+      File.join('lib/methods', "*.rb")
+    ].each do |file|
+      file.sub!(/.+?\//,'')
+      require file
+    end
+    # require 'core_classes/string.rb'
+    
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers
