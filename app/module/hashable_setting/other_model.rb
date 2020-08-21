@@ -9,20 +9,12 @@ module HashableSetting
             method_name = setting.name
             next if resource.methods.include? method_name
             define_singleton_method(method_name) do
-              open_struct(setting.load_setting)
+              variable_name = '@' + method_name
+              instance_variable_get(variable_name) || instance_variable_set(variable_name, setting.load_setting)
             end
           end
         end
       end
-    end
-
-    def open_struct(hash)
-      hash.each do |key,value|
-        if value.class == Hash
-          hash[key] = open_struct(value)
-        end
-      end
-      return OpenStruct.new hash
     end
   end
 end

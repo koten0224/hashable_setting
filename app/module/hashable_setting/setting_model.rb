@@ -5,8 +5,14 @@ module HashableSetting
       base.class_eval do
         has_many :settings, as: :owner, dependent: :destroy
         belongs_to :owner, polymorphic: true
-        @@valid_class = %w(string integer boolean hash array).freeze
-        @@boolean_class = %w(trueclass falseclass).freeze
+        @@valid_class = %w(
+          string 
+          integer 
+          true_class 
+          false_class 
+          hash 
+          array
+          ).freeze
       
         validates :name, uniqueness: {scope: :owner}
       
@@ -15,20 +21,20 @@ module HashableSetting
       end
     end
     def default_klass
-      if @@boolean_class.include? klass
-        self.klass = 'boolean'
-      elsif @@valid_class.exclude? klass
+      unless klass.is_orm_class? || @@valid_class.include?(klass)
         self.klass = 'string'
       end
     end
   
     def value
+      return self['value'] if klass.is_orm_class?
       eval_list = {
         'string' => -> {self['value']},
         'integer' =>  -> {self['value'].to_i},
-        'boolean' =>  -> {self['value'] == 'true'}
+        'true_class' =>  -> {true},
+        'false_class' => -> {false}
       }
-      eval_list[klass].call
+      eval_list[klass]&.call
     end
     
   end

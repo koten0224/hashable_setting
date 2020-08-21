@@ -1,25 +1,34 @@
 module HashableSetting
   module Base  
     def save_setting(container)
-      super_klass = container.class.to_s.downcase
+      container = container.to_h if container.class == OpenStruct
+      super_klass = container.class.name.underscore
       return if Condition.containers.exclude?(super_klass)
       container.send(Condition.send(super_klass)) do |a,b|
         condition = Condition.new(klass: super_klass, value_a: a, value_b: b)
         key, value = condition.key, condition.value
         setting = settings.find_or_initialize_by(name: key)
-        sub_klass = value.class.to_s.downcase
+        sub_klass = value.class.name.underscore
+        data, value = value, nil if Condition.containers.include?(sub_klass)
+        value = value.id if value.is_orm?
         setting.klass, setting.value = sub_klass, value
         setting.save if setting.changes.any?
-        setting.save_setting(value) if Condition.containers.include?(sub_klass)
+        setting.save_setting(data) if Condition.containers.include?(sub_klass)
       end
     end
   
     def load_setting
-      case try(:klass)
-      when 'hash', nil then settings.valid.reduce({}){ |hash,setting| hash[setting.name] = setting.load_setting; hash }
-      when 'array' then settings.valid.sort_by{ |x| x.name.to_i }.reduce([]){ |array,setting| array.push(setting.load_setting) }
-      else value
+      return @load_setting if @load_setting
+      klass = try(:klass)
+      if klass&.is_orm_class?
+        @load_setting = klass.find_class.find(value)
+      else
+        @load_setting = case klass
+        when 'hash', nil then settings.valid.reduce(OpenStruct.new){ |op,setting| op[setting.name] = setting.load_setting; op }
+        when 'array' then settings.valid.sort_by{ |x| x.name.to_i }.reduce([]){ |array,setting| array.push(setting.load_setting) }
+        else value
       end
+      return @load_setting
     end
     
     class Condition
