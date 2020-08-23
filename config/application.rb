@@ -18,8 +18,13 @@ module FakeMongo
       file.sub!(/.+?\//,'')
       require file
     end
-    # require 'core_classes/string.rb'
-    
+    if ["development", "test"].include? Rails.env
+      config.factory_bot.definition_file_paths = ["spec/factories"]
+      config.generators do |g|
+        g.factory_bot dir: 'spec/factories'
+      end
+    end
+
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers
