@@ -15,7 +15,7 @@ module FakeMongo
       File.join('lib/core_classes', "*.rb"),
       File.join('lib/methods', "*.rb")
     ].each do |file|
-      file.sub!(/.+?\//,'')
+      file.sub!(/.+?\//, '')
       require file
     end
     if ["development", "test"].include? Rails.env

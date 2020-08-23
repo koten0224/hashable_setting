@@ -18,7 +18,7 @@ RSpec.describe User, type: :model do
           region: "XinYi",
           Street: "DaAnRoad"
         },
-        got_job?: true
+        got_job: true
       },
       family: {
         father: 'papa',
@@ -28,7 +28,7 @@ RSpec.describe User, type: :model do
     }
   }
   let(:user_load_data){
-    user.setting = user_data
+    user.setting(value: user_data)
     user.save
   }
   context 'model' do
@@ -41,21 +41,7 @@ RSpec.describe User, type: :model do
   end
   context 'setting save and load' do
     it 'should save by hash and load success.' do
-      user.setting = user_data
-      expect(user.data.name).to eq('Obama')
-      expect(user.family.father).to eq('papa')
-      user.save
-      p '='*300
-      pp reload_user
-      p '='*300
-      expect(reload_user.data.name).to eq('Obama')
-      expect(reload_user.family.father).to eq('papa')
-      expect(reload_user.data.got_job?).to eq(true)
-      expect(reload_user.data.hobit).to eq(%w(guitar cat code coffee bear))
-    end
-
-    it 'should save by open struct and load success.' do
-      user.setting = open_struct_data
+      user.setting(value: user_data)
       expect(user.data.name).to eq('Obama')
       expect(user.family.father).to eq('papa')
       user.save
@@ -69,7 +55,7 @@ RSpec.describe User, type: :model do
       user_load_data
       expect(user.data.name).to eq('Obama')
       expect(user.family.father).to eq('papa')
-      user.setting = {
+      user.setting(value: {
         data: {
           name: 'Olivia',
           gender: 'female',
@@ -78,7 +64,7 @@ RSpec.describe User, type: :model do
         family: {
           mother: 'mother'
         }
-      }
+      })
       user.save
       expect(reload_user.data.name).to eq('Olivia')
       expect(reload_user.data.gender).to eq('female')
@@ -86,29 +72,7 @@ RSpec.describe User, type: :model do
       expect(reload_user.family.mother).to eq('mother')
       expect(reload_user.family.father).to eq('papa')
     end
-    
-    it 'should assign an open struct to update.' do
-      user_load_data
-      expect(user.data.name).to eq('Obama')
-      expect(user.family.father).to eq('papa')
-      user.setting = OpenStruct.new(
-        data: {
-          name: 'Olivia',
-          gender: 'female',
-          hobit: %w(coffee work)
-        },
-        family: {
-          mother: 'mother'
-        }
-      )
-      user.save
-      expect(reload_user.data.name).to eq('Olivia')
-      expect(reload_user.data.gender).to eq('female')
-      expect(reload_user.data.hobit).to eq(%w(coffee work))
-      expect(reload_user.family.mother).to eq('mother')
-      expect(reload_user.family.father).to eq('papa')
-    end
-    
+
     it 'should update success.' do
       user_load_data
       expect(user.data.name).to eq('Obama')
