@@ -7,7 +7,7 @@ module HashableSetting
         belongs_to :owner, polymorphic: true
         validates :name, uniqueness: {scope: :owner}
         scope :valid, -> { where.not(name: [nil, '']) }
-        before_create :default_klass
+        before_save :default_klass
       end
     end
     VALID_CLASSES = %w(
@@ -19,7 +19,17 @@ module HashableSetting
           array
           symbol
           ).freeze
+
+    def transform_klass
+      if klass == 'dict'
+        self.klass = 'hash'
+      elsif klass == 'list'
+        self.klass = 'array'
+      end
+    end
+
     def default_klass
+      transform_klass
       unless is_orm_class?(klass) || VALID_CLASSES.include?(klass)
         self.klass = 'string'
       end
@@ -42,13 +52,14 @@ module HashableSetting
     def value=(value)
       self.klass ||= value_class = value.class.name.underscore
       return if klass && klass != value_class
-      if VALID_CONTAINERS.include? value_class
-        value.send(iter_function_for(value_class)) do |val_a, val_b|
-          key, val = key_and_value_switcher(value_class, val_a, val_b)
-          sub_set = find_or_new_setting(key)
-          sub_set.value = val
-        end
-      elsif is_orm?(value)
+      # if VALID_CONTAINERS.include? value_class
+      #   value.send(iter_function_for(value_class)) do |val_a, val_b|
+      #     key, val = key_and_value_switcher(value_class, val_a, val_b)
+      #     sub_set = find_or_new_setting(key)
+      #     sub_set.value = val
+      #   end
+      # els
+      if is_orm?(value)
         self['value'] = value.id
       else
         self['value'] = value
