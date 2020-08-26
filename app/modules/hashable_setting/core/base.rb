@@ -10,7 +10,6 @@ module HashableSetting
       VALID_KEYS = [Symbol, String].freeze
 
       def setting(key=nil, value=nil)
-        p [key, value]
         # in this documentaion:
         #   define the key means symbol
         #   define the value means string, integer, boolean, or symbol
@@ -29,11 +28,13 @@ module HashableSetting
         #   setting(value)
         return to_h if key.nil? && value.nil?
         key, value = nil, key if value.nil?
-        if VALID_KEYS.include? value.class
-          define_setting_by_key(key, value)
+        if VALID_KEYS.include? key.class
+          @body[key] = value
+          define_new_key(key)
         elsif value.is_a? Hash
           value.each do |key, val|
-            define_setting_by_key(key, val)
+            @body[key] = val
+            define_new_key(key)
           end
         end
       end

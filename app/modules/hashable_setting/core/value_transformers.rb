@@ -10,7 +10,7 @@ module HashableSetting
         find_all_settings
         @body = Dict.define_by_children(self)
         @body.keys.each do |key|
-          define_as_single_value(key)
+          define_new_key(key)
         end
         @body
       end

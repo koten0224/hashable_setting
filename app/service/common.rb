@@ -2,15 +2,17 @@ module Common
   def self.included(base)
     base.class_eval do
       attr_reader :body, :delete_list
+      attr_accessor :parent
     end
   end
 
   CUSTOM_CLASS = [Dict, List].freeze
 
-  def initialize(body)
+  def initialize(body, parent: nil)
     @delete_list = []
     @changed = false
     @body = body
+    @parent = parent
   end
 
   def update_key(key, value)
@@ -21,6 +23,7 @@ module Common
       update_value(key, value)
     end
     @changed = true
+    @parent&.set_changed
   end
 
   def define_key(key, value)
@@ -53,6 +56,7 @@ module Common
   end
 
   def pass_as_customer_class(key, value)
+    value.parent = self
     self.[]=(key, value, _super: true)
   end
 
@@ -70,19 +74,21 @@ module Common
   end
 
   def set_child(key, child)
-    self.[]=(key, child.value, _super: true)
+    value = child.value
+    self.[]=(key, value, _super: true)
+    value.parent = self if CUSTOM_CLASS.include?(value.class)
     inst_set(key, child)
   end
 
   def set_hash(key, hash)
     child = Setting.new(owner: @body, name: key, value: {})
-    self.[]=(key, Dict.define_by_hash(child, hash), _super: true)
+    self.[]=(key, Dict.define_by_hash(child, hash, parent: self), _super: true)
     inst_set(key, child)
   end
 
   def set_array(key, array)
     child = Setting.new(owner: @body, name: key, value: [])
-    self.[]=(key, List.define_by_array(child, array), _super: true)
+    self.[]=(key, List.define_by_array(child, array, parent: self), _super: true)
     inst_set(key, child)
   end
 
@@ -126,5 +132,11 @@ module Common
   def key_check(key)
     @changed ||= inst_get(key).changed?
     @changed ||= key_value_changed?(key)
+    @parent&.set_changed if @changed
+  end
+
+  def set_changed
+    @changed = true
+    @parent&.set_changed
   end
 end

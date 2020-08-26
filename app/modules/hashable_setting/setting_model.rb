@@ -19,7 +19,7 @@ module HashableSetting
           array
           symbol
           ).freeze
-    
+
     VALID_CONTAINERS = %w(
       hash
       array

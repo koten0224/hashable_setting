@@ -21,16 +21,6 @@ module HashableSetting
           ss = Setting.where(owner: ss)
         end
       end
-
-      def find_or_new_setting(key)
-        find_all_settings
-        sub_set = children.find{ |s| s.name == key }
-        if sub_set.nil?
-          sub_set = Setting.new(owner: self, name: key)
-          children << sub_set
-        end
-        return sub_set
-      end
     end
   end
 end

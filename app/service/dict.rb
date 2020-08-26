@@ -1,7 +1,7 @@
 class Dict < Hash
   include Common
-  def self.define_by_hash(body, hash)
-    hash.reduce(new(body)) do |h, (k, v)|
+  def self.define_by_hash(body, hash, parent: nil)
+    hash.reduce(new(body, parent: parent)) do |h, (k, v)|
       h[k] = v
       h
     end
@@ -45,7 +45,7 @@ class Dict < Hash
   def def_meth(name)
     define_singleton_method(name) do
       self[name]
-    end 
+    end
     define_singleton_method("#{name}=") do |value|
       p [name, value]
       self[name]=value

@@ -1,7 +1,7 @@
 class List < Array
   include Common
-  def self.define_by_array(body, array)
-    result = array.reduce(new(body)) do |a, v|
+  def self.define_by_array(body, array, parent: nil)
+    result = array.reduce(new(body, parent: parent)) do |a, v|
       a.push v
       a
     end
@@ -10,7 +10,7 @@ class List < Array
 
   def self.define_by_children(body)
     body.children.sort_by{|c|c.name.to_i}.reduce(new(body)) do |a, child|
-      a.push child.value
+      a.push child
     end
   end
 
