@@ -9,7 +9,7 @@ module HashableSetting
     end
 
     def save_body
-      @body.save
+      @body&.save
     end
   end
 end

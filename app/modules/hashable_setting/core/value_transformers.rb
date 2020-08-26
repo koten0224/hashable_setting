@@ -8,7 +8,7 @@ module HashableSetting
         return if try(:klass) && klass != 'hash'
         return @body if @body
         find_all_settings
-        @body = Dict.define_by_children(self)
+        @body = Helpers::DataStructures::Dict.define_by_children(self)
         @body.keys.each do |key|
           define_new_key(key)
         end
@@ -19,7 +19,7 @@ module HashableSetting
         return if try(:klass) && klass != 'array'
         return @body if @body
         find_all_settings
-        @body = List.define_by_children(self)
+        @body = Helpers::DataStructures::List.define_by_children(self)
       end
     end
   end
