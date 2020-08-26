@@ -31,8 +31,6 @@ module HashableSetting
         end
         return sub_set
       end
-
-
     end
   end
 end

@@ -4,21 +4,6 @@ module HashableSetting
 
       private
 
-      def iter_function_for(klass)
-        case klass
-        when 'hash' then :each # .... do |key, value|
-        when 'array' then :each_with_index # .... do |value, index|
-        end
-      end
-
-      def key_and_value_switcher(klass, value_a, value_b)
-        case klass
-        when 'hash' then [value_a, value_b]
-        when 'array' then [value_b, value_a]
-        else nil
-        end
-      end
-
       def is_orm?(object)
         %i(id created_at updated_at).each do |sym|
           return if object.try(sym).nil?

@@ -1,15 +1,15 @@
 class Dict < Hash
   include Common
-  def self.define_by_hash(body, **hash)
+  def self.define_by_hash(body, hash)
     hash.reduce(new(body)) do |h, (k, v)|
       h[k] = v
       h
     end
   end
 
-  def self.define_by_self_children(body)
+  def self.define_by_children(body)
     body.children.reduce(new(body)) do |h, child|
-      h[child.anme] = child
+      h[child.name] = child
       h
     end
   end
@@ -21,9 +21,9 @@ class Dict < Hash
       update_key(key, value)
     else
       define_key(key, value)
+      def_meth(key)
     end
-    @changed_list << inst_get(key)
-    @changed = true
+    key_check(key)
   end
 
   def delete_key(key)
@@ -42,13 +42,20 @@ class Dict < Hash
     end
   end
 
-  def def_meth(name, child)
-    inst_set(name, child)
+  def def_meth(name)
     define_singleton_method(name) do
       self[name]
     end 
     define_singleton_method("#{name}=") do |value|
+      p [name, value]
       self[name]=value
     end
+  end
+  def save
+    delete_from_list
+    each do |key, value|
+      save_child_and_value(key, value)
+    end
+    @changed = false
   end
 end

@@ -1,14 +1,13 @@
 module Common
   def self.included(base)
     base.class_eval do
-      attr_reader :body
+      attr_reader :body, :delete_list
     end
   end
 
-  CUSTOMER_CLASS = [Dict, List].freeze
+  CUSTOM_CLASS = [Dict, List].freeze
 
   def initialize(body)
-    @changed_list = []
     @delete_list = []
     @changed = false
     @body = body
@@ -21,11 +20,13 @@ module Common
     else
       update_value(key, value)
     end
+    @changed = true
   end
 
   def define_key(key, value)
-    if CUSTOMER_CLASS.include? value.class
+    if CUSTOM_CLASS.include? value.class
       pass_as_customer_class(key, value)
+      inst_set(key, value.body)
     elsif value.is_a? Setting
       set_child(key, value)
     elsif value.is_a? Hash
@@ -38,7 +39,7 @@ module Common
   end
 
   def update_value(key, value)
-    if CUSTOMER_CLASS.include? value.class
+    if CUSTOM_CLASS.include? value.class
       pass_as_customer_class(key, value)
     elsif value.is_a? Setting
       self[key] = value.value
@@ -53,7 +54,6 @@ module Common
 
   def pass_as_customer_class(key, value)
     self.[]=(key, value, _super: true)
-    inst_set(key, value.body)
   end
 
   def update_hash(key, hash)
@@ -76,13 +76,13 @@ module Common
 
   def set_hash(key, hash)
     child = Setting.new(owner: @body, name: key, value: {})
-    self.[]=(key, Dict.define_by_hash(hash, body: child), _super: true)
+    self.[]=(key, Dict.define_by_hash(child, hash), _super: true)
     inst_set(key, child)
   end
 
   def set_array(key, array)
     child = Setting.new(owner: @body, name: key, value: [])
-    self.[]=(key, List.new(array, body: child), _super: true)
+    self.[]=(key, List.define_by_array(child, array), _super: true)
     inst_set(key, child)
   end
 
@@ -98,5 +98,33 @@ module Common
 
   def inst_get(name)
     instance_variable_get("@_#{name}")
+  end
+
+  def changed?
+    @changed
+  end
+
+  def delete_from_list
+    @delete_list.each do |obj|
+      obj.destroy
+    end
+  end
+
+  def save_child_and_value(key, value)
+    if key_value_changed?(key)
+      value.save
+    end
+    if inst_get(key).changed?
+      inst_get(key).save
+    end
+  end
+
+  def key_value_changed?(key)
+    CUSTOM_CLASS.include?(self[key].class) && self[key].changed?
+  end
+
+  def key_check(key)
+    @changed ||= inst_get(key).changed?
+    @changed ||= key_value_changed?(key)
   end
 end

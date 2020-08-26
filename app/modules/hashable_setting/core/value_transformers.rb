@@ -9,6 +9,10 @@ module HashableSetting
         return @body if @body
         find_all_settings
         @body = Dict.define_by_children(self)
+        @body.keys.each do |key|
+          define_as_single_value(key)
+        end
+        @body
       end
 
       def to_a

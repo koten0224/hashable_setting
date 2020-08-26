@@ -1,12 +1,14 @@
 class List < Array
   include Common
-  def self.define_by_array(body, *array)
-    array.reduce(new(body)) do |a, v|
+  def self.define_by_array(body, array)
+    result = array.reduce(new(body)) do |a, v|
       a.push v
+      a
     end
+    result
   end
 
-  def self.define_by_self_children(body)
+  def self.define_by_children(body)
     body.children.sort_by{|c|c.name.to_i}.reduce(new(body)) do |a, child|
       a.push child.value
     end
@@ -21,13 +23,14 @@ class List < Array
     else
       define_key(key, value)
     end
-    @changed_list << inst_get(key)
-    @changed = true
+    key_check(key)
   end
 
   def push(v)
-    define_key(length, v)
-    super v
+    key = length
+    define_key(key, v)
+    key_check(key)
+    self
   end
 
   def negative_check(key)
@@ -63,5 +66,12 @@ class List < Array
         delete_at(key)
       end
     end
+  end
+  def save
+    delete_from_list
+    each_with_index do |value, index|
+      save_child_and_value(index, value)
+    end
+    @changed = false
   end
 end

@@ -19,6 +19,11 @@ module HashableSetting
           array
           symbol
           ).freeze
+    
+    VALID_CONTAINERS = %w(
+      hash
+      array
+    ).freeze
 
     def transform_klass
       if klass == 'dict'
@@ -50,17 +55,13 @@ module HashableSetting
     end
 
     def value=(value)
-      self.klass ||= value_class = value.class.name.underscore
+      value_class = value.class.name.underscore
+      self.klass ||= value_class
       return if klass && klass != value_class
-      # if VALID_CONTAINERS.include? value_class
-      #   value.send(iter_function_for(value_class)) do |val_a, val_b|
-      #     key, val = key_and_value_switcher(value_class, val_a, val_b)
-      #     sub_set = find_or_new_setting(key)
-      #     sub_set.value = val
-      #   end
-      # els
       if is_orm?(value)
         self['value'] = value.id
+      elsif VALID_CONTAINERS.include? value_class
+        self['value'] = nil
       else
         self['value'] = value
       end
